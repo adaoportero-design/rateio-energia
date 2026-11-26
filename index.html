@@ -166,11 +166,11 @@ select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(-
 <div class="total" id="totalTxt"></div>
 <div id="avisos"></div>
 <div class="scroll"><table>
-<thead><tr><th>Chácara</th><th>Consumo próprio</th><th>Caixa d’água (1/8)</th><th>Total a pagar</th></tr></thead>
+<thead><tr><th>Chácara</th><th>Consumo próprio</th><th>Caixa d’água (1/7)</th><th>Total a pagar</th></tr></thead>
 <tbody id="tbody"></tbody>
 <tfoot id="tfoot"></tfoot>
 </table></div>
-<p class="hint" style="margin-top:12px">Rogério paga o consumo do relógio dele mais 1/8 da caixa d’água. As outras seis pagam só 1/8 da caixa d’água. A primeira linha fica com o restante da fatura, que é o consumo da própria casa mais 1/8 da caixa d’água.</p>
+<p class="hint" style="margin-top:12px">Rogério paga o consumo do relógio dele mais 1/7 da caixa d’água. As outras cinco pagam só 1/7 da caixa d’água. A primeira linha fica com o restante da fatura, que é o consumo da própria casa mais 1/7 da caixa d’água.</p>
 </section>
 
 <section class="panel">
@@ -200,9 +200,11 @@ select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(-
 <script>
 (function(){
 var KEY="rateio-energia-v1";
-var S={periodo:"",faturas:[{mes:"",valor:"",kwh:""}],rAnt:"",rAtu:"",cAnt:"",cAtu:"",nomes:["Você","Rogério","Chácara 3","Chácara 4","Chácara 5","Chácara 6","Chácara 7","Chácara 8"]};
+var S={periodo:"",faturas:[{mes:"",valor:"",kwh:""}],rAnt:"",rAtu:"",cAnt:"",cAtu:"",nomes:["Você","Rogério","Chácara 3","Chácara 4","Chácara 5","Chácara 6","Chácara 7"]};
+var NCH=7;
 var fresh=true;
 try{var raw=localStorage.getItem(KEY);if(raw){fresh=false;var o=JSON.parse(raw);if(o&&typeof o==="object"){for(var k in S){if(o[k]!==undefined)S[k]=o[k];}}}}catch(e){}
+if(S.nomes.length>NCH)S.nomes=S.nomes.slice(0,NCH);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 var PRESET=[["01/2026","149,68","587,15","641"],["02/2026","123,23","434,32","478"],["03/2026","37,03","37,03","52"],["04/2026","37,46","37,46","52"],["05/2026","82,85","45,39","52"],["06/2026","41,46","41,46","52"],["07/2026","83,10","41,64","53"],["08/2026","419,68","1558,58","1569"],["09/2026","271,75","638,18","632"],["10/2026","180,46","403,70","407"],["11/2026","68,28","293,63","404"]];
 function preset(){S.faturas=PRESET.map(function(p){return{mes:p[0],fatura:p[1],valor:p[2],kwh:p[3]};});S.periodo="janeiro a novembro/2026 (leituras de 16/12/2025 a 13/11/2026)";}
@@ -242,10 +244,10 @@ if(isFinite(kR)&&isFinite(kC)&&kb>0&&kR+kC>kb)av.push("Rogério mais a caixa d�
 var ready=okF&&total>0&&kb>0&&isFinite(kR)&&isFinite(kC)&&kR>=0&&kC>=0;
 var res=null;
 if(ready){
-var custoR=r2(kR*preco),custoC=r2(kC*preco),cota=r2(custoC/8);
+var custoR=r2(kR*preco),custoC=r2(kC*preco),cota=r2(custoC/NCH);
 var pR=r2(custoR+cota);
-var outras=[];for(var i=2;i<8;i++)outras.push(cota);
-var voce=r2(total-pR-cota*6);
+var outras=[];for(var i=2;i<NCH;i++)outras.push(cota);
+var voce=r2(total-pR-cota*(NCH-2));
 if(voce<0)av.push("O valor restante para a primeira linha ficou negativo. Confira os dados.");
 res={total:r2(total),kb:kb,preco:preco,kR:kR,kC:kC,custoR:custoR,custoC:custoC,cota:cota,pR:pR,voce:voce,linhas:[
 {n:S.nomes[0],prop:r2(voce-cota),cota:cota,pag:voce},
@@ -587,7 +589,7 @@ var CRIT=["Período: faturas de janeiro a novembro/2026 (leituras de 16/12/2025 
 "O ressarcimento DIC de novembro/2026 (R$ 113,68) foi considerado e abate a conta do mês.",
 "Preço médio do kWh = valor considerado total ÷ kWh faturados no período.",
 "“Total da fatura” é o valor impresso em cada fatura e não deve ser somado: abril, junho e agosto são cobrados de novo nas faturas seguintes (Conta Mês Anterior e parcelas).",
-"Rogério paga o consumo do relógio dele pelo preço médio mais 1/8 da caixa d’água. As demais chácaras pagam 1/8 da caixa d’água. O restante da fatura fica com a primeira linha."];
+"Rogério paga o consumo do relógio dele pelo preço médio mais 1/7 da caixa d’água. As demais chácaras pagam 1/7 da caixa d’água. O restante da fatura fica com a primeira linha."];
 function bkMsg(t){$("bkMsg").textContent=t;}
 function hoje(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function baixar(nome,blob){
@@ -643,7 +645,7 @@ function xlsxBlob(){
  R.push(["Caixa d’água (kWh)",{v:c.kC,s:KW}]);
  R.push([]);
  if(r){
-  R.push([{v:"Chácara",s:1},{v:"Consumo próprio",s:1},{v:"Caixa d’água (1/8)",s:1},{v:"Total a pagar",s:1}]);
+  R.push([{v:"Chácara",s:1},{v:"Consumo próprio",s:1},{v:"Caixa d’água (1/7)",s:1},{v:"Total a pagar",s:1}]);
   var t0=R.length+1,soma=0;
   r.linhas.forEach(function(l){soma+=l.pag;R.push([l.n,l.prop===null?null:{v:l.prop,s:MN},{v:l.cota,s:MN},{v:l.pag,s:MN}]);});
   R.push([{v:"Soma",s:1},null,null,{v:r2(soma),s:BM,f:"SUM(D"+t0+":D"+(t0+r.linhas.length-1)+")"}]);
@@ -706,7 +708,7 @@ function pdfBlob(){
  section("Quanto cada chácara paga");
  var rg=[0,292,402,537];
  if(r){
-  trow(["Chácara","Consumo próprio","Caixa d’água (1/8)","Total a pagar"],rg,20,9,true,NAVY,WHITE);
+  trow(["Chácara","Consumo próprio","Caixa d’água (1/7)","Total a pagar"],rg,20,9,true,NAVY,WHITE);
   var soma=0;
   r.linhas.forEach(function(l,i){soma+=l.pag;trow([l.n,l.prop===null?"—":mon(l.prop),mon(l.cota),mon(l.pag)],rg,19,10,false,i%2?ZEB:WHITE,INK,HI);});
   need(28);rect(50,y-28,495,28,NAVY);txt("Total a ratear",58,y-18,10,true,WHITE);txt(mon(soma),537,y-19,13,true,WHITE,true);y-=28;
@@ -762,7 +764,7 @@ $("bkFile").addEventListener("change",function(e){
    if(!fat.length)fat=[{mes:"",valor:"",kwh:""}];
    S.faturas=fat;S.periodo=String(st.periodo||"");
    ["rAnt","rAtu","cAnt","cAtu"].forEach(function(k){S[k]=String(st[k]==null?"":st[k]);});
-   if(Array.isArray(st.nomes)&&st.nomes.length===8)S.nomes=st.nomes.map(String);
+   if(Array.isArray(st.nomes)&&st.nomes.length>=NCH)S.nomes=st.nomes.slice(0,NCH).map(String);
    save();refazTela();bkMsg("Backup restaurado ("+(o.exportado?new Date(o.exportado).toLocaleString("pt-BR"):"data desconhecida")+").");
   }catch(err){bkMsg("Não consegui restaurar: "+((err&&err.message)||err));}
   $("bkFile").value="";
